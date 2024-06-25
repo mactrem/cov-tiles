@@ -11,6 +11,8 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+
+import com.mlt.decoder.vectorized.fastpfor.VectorFastPFOR;
 import me.lemire.integercompression.*;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -211,7 +213,8 @@ public class EncodingUtils {
       encodedValues = encodeZigZag(encodedValues);
     }
 
-    IntegerCODEC ic = new Composition(new FastPFOR(), new VariableByte());
+    //IntegerCODEC ic = new Composition(new FastPFOR(), new VariableByte());
+    IntegerCODEC ic = new Composition(new VectorFastPFOR(), new VariableByte());
     IntWrapper inputoffset = new IntWrapper(0);
     IntWrapper outputoffset = new IntWrapper(0);
     int[] compressed = new int[encodedValues.length + 1024];

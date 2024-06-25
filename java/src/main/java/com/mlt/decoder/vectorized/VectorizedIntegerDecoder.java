@@ -70,7 +70,7 @@ public class VectorizedIntegerDecoder {
       byte[] data, IntWrapper offset, StreamMetadata streamMetadata, boolean isSigned) {
     var values = VectorizedDecodingUtils.decodeLongVarint(data, offset, streamMetadata.numValues());
 
-    /**
+    /*
      * Only RLE encoding or a single not encoded value in the data stream can currently produce an
      * ConstVector
      */
@@ -79,7 +79,7 @@ public class VectorizedIntegerDecoder {
       return isSigned ? DecodingUtils.decodeZigZag(value) : value;
     }
 
-    /** Only RLE encoding can currently produce an ConstVector */
+    /* Only RLE encoding can currently produce an ConstVector */
     return isSigned
         ? VectorizedDecodingUtils.decodeZigZagConstRLE(values.array())
         : VectorizedDecodingUtils.decodeUnsignedConstRLE(values.array());
@@ -105,7 +105,7 @@ public class VectorizedIntegerDecoder {
               VectorizedDecodingUtils.decodeUnsignedRLE(
                       values, rleMetadata.runs(), rleMetadata.numRleValues())
                   .array();
-          /** Currently delta values are always ZigZag encoded */
+          /* Currently delta values are always ZigZag encoded */
           VectorizedDecodingUtils.decodeZigZagDelta(values);
           return IntBuffer.wrap(values);
         }
@@ -116,10 +116,10 @@ public class VectorizedIntegerDecoder {
         VectorizedDecodingUtils.decodeZigZagDelta(values);
         return IntBuffer.wrap(values);
       case RLE:
-        /** Currently no second logical level technique is used in combination with Rle */
+        /* Currently no second logical level technique is used in combination with Rle */
         return VectorizedDecodingUtils.decodeRle(values, streamMetadata, isSigned);
       case MORTON:
-        /**
+        /*
          * Currently always used in combination with delta encoding and without ZigZag encoding
          * since the values are sorted in ascending order. The data are stored internally in
          * compressed form since they can be in parallel decompressed on the GPU.
@@ -127,7 +127,7 @@ public class VectorizedIntegerDecoder {
         Delta.fastinverseDelta(values);
         return IntBuffer.wrap(values);
       case COMPONENTWISE_DELTA:
-        /** Currently only Vec2 is supported */
+        /* Currently only Vec2 is supported */
         VectorizedDecodingUtils.decodeComponentwiseDeltaVec2(values);
         return IntBuffer.wrap(values);
       case NONE:
@@ -351,8 +351,4 @@ public class VectorizedIntegerDecoder {
     throw new IllegalArgumentException("The specified Logical level technique is not supported");
   }
 
-  /**
-   * Decode length streams to offsets streams for random access by adding an additional delta
-   * decoding step -----
-   */
 }

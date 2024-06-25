@@ -44,7 +44,7 @@ test {
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
+        languageVersion = JavaLanguageVersion.of(21)
     }
 }
 
@@ -52,7 +52,7 @@ spotless {
     java {
         importOrder()
         target 'src/*/java/**/*.java'
-        googleJavaFormat('1.15.0')
+        googleJavaFormat('1.22.0')
         removeUnusedImports()
      }
 }
@@ -99,4 +99,24 @@ task cli {
     dependsOn encode
     dependsOn decode
     dependsOn meta
+}
+
+tasks.withType(JavaCompile) {
+    options.compilerArgs += [
+            '--add-modules', 'jdk.incubator.vector'
+    ]
+}
+
+tasks.withType(JavaExec) {
+    jvmArgs += "--add-modules=jdk.incubator.vector"
+}
+
+tasks.withType(Test) {
+    useJUnitPlatform()
+    jvmArgs += "--add-modules=jdk.incubator.vector"
+}
+
+jmh {
+    jvmArgs.add('--add-modules')
+    jvmArgs.add('jdk.incubator.vector')
 }

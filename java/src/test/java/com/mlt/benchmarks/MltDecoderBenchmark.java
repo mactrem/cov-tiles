@@ -1,4 +1,4 @@
-package com.mlt.decoder;
+package com.mlt.benchmarks;
 
 import com.mlt.TestSettings;
 import com.mlt.converter.ConversionConfig;
@@ -14,6 +14,8 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import com.mlt.decoder.MltDecoder;
 import org.junit.jupiter.api.Test;
 
 /**
