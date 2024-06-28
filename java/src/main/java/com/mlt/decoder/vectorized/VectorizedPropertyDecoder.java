@@ -157,10 +157,10 @@ public class VectorizedPropertyDecoder {
             case UINT_64, INT_64 -> decodeLongColumn(data, offset, column, nullabilityBuffer, scalarType);
             case FLOAT ->
                 // TODO: add rle encoding and ConstVector
-                    decodeFloatColumn(data, offset, column, nullabilityBuffer);
+                    decodeFloatColumn(data, offset, column, nullabilityBuffer, numFeatures);
             case DOUBLE ->
                 // TODO: add rle encoding and ConstVector
-                    decodeDoubleColumn(data, offset, column, nullabilityBuffer);
+                    decodeDoubleColumn(data, offset, column, nullabilityBuffer, numFeatures);
             case STRING -> VectorizedStringDecoder.decodeToRandomAccessFormat(
                     column.getName(), data, offset, numStreams - 1, nullabilityBuffer, numFeatures);
             default -> throw new IllegalArgumentException(
@@ -198,24 +198,30 @@ public class VectorizedPropertyDecoder {
     }
   }
 
-  private static DoubleFlatVector decodeDoubleColumn(byte[] data, IntWrapper offset, MltTilesetMetadata.Column column, BitVector nullabilityBuffer) {
+  private static DoubleFlatVector decodeDoubleColumn(byte[] data, IntWrapper offset, MltTilesetMetadata.Column column,
+                                                     BitVector nullabilityBuffer, int numValues) {
     var dataStreamMetadata = StreamMetadataDecoder.decode(data, offset);
-    var dataStream =
-        nullabilityBuffer != null
-            ? VectorizedDoubleDecoder.decodeNullableDoubleStream(
-                data, offset, dataStreamMetadata, nullabilityBuffer)
-            : VectorizedDoubleDecoder.decodeDoubleStream(data, offset, dataStreamMetadata);
-    return new DoubleFlatVector(column.getName(), nullabilityBuffer, dataStream);
+    if(nullabilityBuffer != null){
+      var dataStream = VectorizedDoubleDecoder.decodeNullableDoubleStream(
+              data, offset, dataStreamMetadata, nullabilityBuffer);
+      return new DoubleFlatVector(column.getName(), nullabilityBuffer, dataStream);
+    }
+
+    var dataStream = VectorizedDoubleDecoder.decodeDoubleStream(data, offset, dataStreamMetadata);
+    return new DoubleFlatVector(column.getName(), dataStream, numValues);
   }
 
-  private static FloatFlatVector decodeFloatColumn(byte[] data, IntWrapper offset, MltTilesetMetadata.Column column, BitVector nullabilityBuffer) {
+  private static FloatFlatVector decodeFloatColumn(byte[] data, IntWrapper offset, MltTilesetMetadata.Column column,
+                                                   BitVector nullabilityBuffer, int numValues) {
     var dataStreamMetadata = StreamMetadataDecoder.decode(data, offset);
-    var dataStream =
-        nullabilityBuffer != null
-            ? VectorizedFloatDecoder.decodeNullableFloatStream(
-                data, offset, dataStreamMetadata, nullabilityBuffer)
-            : VectorizedFloatDecoder.decodeFloatStream(data, offset, dataStreamMetadata);
-    return new FloatFlatVector(column.getName(), nullabilityBuffer, dataStream);
+    if(nullabilityBuffer != null){
+      var dataStream = VectorizedFloatDecoder.decodeNullableFloatStream(
+              data, offset, dataStreamMetadata, nullabilityBuffer);
+      return new FloatFlatVector(column.getName(), nullabilityBuffer, dataStream);
+    }
+
+    var dataStream = VectorizedFloatDecoder.decodeFloatStream(data, offset, dataStreamMetadata);
+    return new FloatFlatVector(column.getName(), dataStream, numValues);
   }
 
   private static Vector<LongBuffer, Long> decodeLongColumn(byte[] data, IntWrapper offset, MltTilesetMetadata.Column column, BitVector nullabilityBuffer, MltTilesetMetadata.ScalarColumn scalarType) {
@@ -244,7 +250,10 @@ public class VectorizedPropertyDecoder {
     }
   }
 
-  private static Vector<IntBuffer, Integer> decodeIntColumn(byte[] data, IntWrapper offset, MltTilesetMetadata.Column column, MltTilesetMetadata.ScalarColumn scalarType, BitVector nullabilityBuffer) {
+  private static Vector<IntBuffer, Integer> decodeIntColumn(byte[] data, IntWrapper offset,
+                                                            MltTilesetMetadata.Column column,
+                                                            MltTilesetMetadata.ScalarColumn scalarType,
+                                                            BitVector nullabilityBuffer) {
     var dataStreamMetadata = StreamMetadataDecoder.decode(data, offset);
     var vectorType = VectorizedDecodingUtils.getVectorTypeIntStream(dataStreamMetadata);
     var isSigned = scalarType.getPhysicalType() == MltTilesetMetadata.ScalarType.INT_32;

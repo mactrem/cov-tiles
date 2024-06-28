@@ -163,7 +163,7 @@ public class OmtDecoderBenchmark {
     return MltDecoder.decodeMlTileVectorized(mlTile, mltMetadata);
   }
 
-  /*@Benchmark
+  @Benchmark
   public Map<String, VectorTileLayer> decodeMvtMapboxZ2() throws IOException {
     var mvTile = encodedMvtTiles.get(2);
     return MvtUtils.decodeMvtMapbox(mvTile);
@@ -173,7 +173,7 @@ public class OmtDecoderBenchmark {
   public Map<String, VectorTileLayer> decodeMvtMapboxZ3() throws IOException {
     var mvTile = encodedMvtTiles.get(3);
     return MvtUtils.decodeMvtMapbox(mvTile);
-  }*/
+  }
 
   @Benchmark
   public Map<String, VectorTileLayer> decodeMvtMapboxZ4() throws IOException {
@@ -199,7 +199,7 @@ public class OmtDecoderBenchmark {
     return MvtUtils.decodeMvtMapbox(mvTile);
   }
 
-  /*@Benchmark
+  @Benchmark
   public Map<String, VectorTileLayer> decodeMvtMapboxZ8() throws IOException {
     var mvTile = encodedMvtTiles.get(8);
     return MvtUtils.decodeMvtMapbox(mvTile);
@@ -233,7 +233,7 @@ public class OmtDecoderBenchmark {
   public Map<String, VectorTileLayer> decodeMvtMapboxZ13() throws IOException {
     var mvTile = encodedMvtTiles.get(13);
     return MvtUtils.decodeMvtMapbox(mvTile);
-  }*/
+  }
 
   @Benchmark
   public Map<String, VectorTileLayer> decodeMvtMapboxZ14() throws IOException {
