@@ -22,7 +22,8 @@ public class StringSharedDictionaryVector extends VariableSizeVector<Map<String,
       IntBuffer lengthBuffer,
       ByteBuffer dictionaryBuffer,
       DictionaryDataVector[] dictionaryDataVectors) {
-    super(name, lengthBuffer, dictionaryBuffer);
+    //TODO: refactor -> proper solution for SStringSharedDictionaryVector and size
+    super(name, lengthBuffer, dictionaryBuffer, 0);
     this.dictionaryDataVectors = dictionaryDataVectors;
   }
 
@@ -46,7 +47,7 @@ public class StringSharedDictionaryVector extends VariableSizeVector<Map<String,
   }
 
   public String getValue(String name, int index) {
-    if (nullabilityBuffer.isPresent() && !nullabilityBuffer.get().get(index)) {
+    if (nullabilityBuffer == null && !nullabilityBuffer.get(index)) {
       return null;
     }
 

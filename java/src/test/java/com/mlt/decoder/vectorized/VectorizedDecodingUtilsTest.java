@@ -131,26 +131,18 @@ public class VectorizedDecodingUtilsTest {
   }
 
   @Test
-  void decodeRLEVectorized() {
-    var values = new int[] {1, 1, 2, 2};
-    var expectedValues = new int[] {1, 1, 0, 2, 0, 2, 0};
-    // 0101011
-    var byteBuffer = ByteBuffer.wrap(new byte[] {0x2B});
-    var bitVector = new BitVector(byteBuffer, 7);
+  void decodeUnsignedRLEVectorized() {
+    var values = new int[] {1, 1, 2, 2, 4, 5, 8, 8, 9};
     var rleComponentBuffer = EncodingUtils.encodeRle(values);
     var rleList = new ArrayList<>(rleComponentBuffer.getLeft());
     rleList.addAll(rleComponentBuffer.getRight());
     var rleBuffer = rleList.stream().mapToInt(i -> i).toArray();
 
-    VectorizedDecodingUtils.decodeRleVectorized(
-                    rleBuffer, null, null, 1);
+    var decodedValues =
+            VectorizedDecodingUtils.decodeUnsignedRleVectorized(rleBuffer, rleComponentBuffer.getLeft().size(),
+                    values.length);
 
-    /*var decodedValues =
-            VectorizedDecodingUtils.decodeRleVectorized(
-                    rleBuffer, rleComponentBuffer.getLeft().size());
-
-    assertEquals(expectedValues.length, decodedValues.capacity());
-    assertTrue(Arrays.equals(expectedValues, decodedValues.array()));*/
+    assertArrayEquals(values, decodedValues);
   }
 
   @Test

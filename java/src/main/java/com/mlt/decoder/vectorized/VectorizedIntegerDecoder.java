@@ -7,6 +7,7 @@ import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import me.lemire.integercompression.IntWrapper;
 import me.lemire.integercompression.differential.Delta;
+import org.apache.commons.lang3.tuple.Pair;
 
 public class VectorizedIntegerDecoder {
 
@@ -46,7 +47,7 @@ public class VectorizedIntegerDecoder {
                 data, streamMetadata.numValues(), streamMetadata.byteLength(), offset)
             : VectorizedDecodingUtils.decodeVarint(data, offset, streamMetadata.numValues());
 
-    /**
+    /*
      * Only RLE encoding or a single not encoded value in the data stream can currently produce an
      * ConstVector
      */
@@ -58,6 +59,26 @@ public class VectorizedIntegerDecoder {
     return isSigned
         ? VectorizedDecodingUtils.decodeZigZagConstRLE(values.array())
         : VectorizedDecodingUtils.decodeUnsignedConstRLE(values.array());
+  }
+
+  public static Pair<Integer, Integer> decodeSequenceIntStream(
+          byte[] data, IntWrapper offset, StreamMetadata streamMetadata) {
+    var values =
+            streamMetadata.physicalLevelTechnique() == PhysicalLevelTechnique.FAST_PFOR
+                    ? VectorizedDecodingUtils.decodeFastPfor(
+                    data, streamMetadata.numValues(), streamMetadata.byteLength(), offset)
+                    : VectorizedDecodingUtils.decodeVarint(data, offset, streamMetadata.numValues());
+
+    /* Only RLE encoding can currently produce a Sequence Vector. The values are always ZigZag encoded */
+    return VectorizedDecodingUtils.decodeZigZagSequenceRLE(values.array());
+  }
+
+  public static Pair<Long, Long> decodeSequenceLongStream(
+          byte[] data, IntWrapper offset, StreamMetadata streamMetadata) {
+    var values = VectorizedDecodingUtils.decodeLongVarint(data, offset, streamMetadata.numValues());
+
+    /*  Only RLE encoding can currently produce a Sequence Vector. The values are always ZigZag encoded */
+    return VectorizedDecodingUtils.decodeZigZagSequenceRLE(values.array());
   }
 
   public static LongBuffer decodeLongStream(

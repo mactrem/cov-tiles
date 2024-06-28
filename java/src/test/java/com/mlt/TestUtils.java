@@ -3,13 +3,23 @@ package com.mlt;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.mlt.converter.mvt.MapboxVectorTile;
+import com.mlt.data.Feature;
 import com.mlt.data.MapLibreTile;
 import com.mlt.vector.FeatureTable;
+
+import java.util.List;
 import java.util.Map;
 
 public class TestUtils {
+  public enum Optimization {
+    NONE,
+    SORTED,
+    IDS_REASSIGNED
+  }
+
   public static void compareTilesVectorized(
-      FeatureTable[] featureTables, MapboxVectorTile mvTile, boolean isFeatureTableSorted) {
+      FeatureTable[] featureTables, MapboxVectorTile mvTile, Optimization optimization,
+      List<String> reassignableLayers) {
     var mvtLayers = mvTile.layers();
     for (var i = 0; i < mvtLayers.size(); i++) {
       var featureTable = featureTables[i];
@@ -18,12 +28,14 @@ public class TestUtils {
       var featureIterator = featureTable.iterator();
       for (var j = 0; j < mvtFeatures.size(); j++) {
         var mltFeature = featureIterator.next();
-        var mvtFeature =
-            isFeatureTableSorted
-                ? mvtFeatures.stream().filter(f -> f.id() == mltFeature.id()).findFirst().get()
-                : mvtFeatures.get(j);
+        Feature mvtFeature = optimization == Optimization.SORTED?
+                mvtFeatures.stream().filter(f -> f.id() == mltFeature.id()).findFirst().get():
+                mvtFeatures.get(j);
 
-        assertEquals(mvtFeature.id(), mltFeature.id());
+        /* Test for a sequential order if the  id was reassigned  */
+        var mvtId = optimization == Optimization.IDS_REASSIGNED &&
+                reassignableLayers.stream().anyMatch(l -> l.equals(featureTable.getName()))? j : mvtFeature.id();
+        assertEquals(mvtId, mltFeature.id());
 
         var mvtGeometry = mvtFeature.geometry();
         var mltGeometry = mltFeature.geometry();

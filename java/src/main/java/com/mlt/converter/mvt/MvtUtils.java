@@ -1,5 +1,6 @@
 package com.mlt.converter.mvt;
 
+import com.mlt.converter.encodings.EncodingUtils;
 import com.mlt.data.Feature;
 import com.mlt.data.Layer;
 import io.github.sebasbaumh.mapbox.vectortile.adapt.jts.MvtReader;
@@ -14,6 +15,9 @@ import no.ecc.vectortile.VectorTileDecoder;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.PrecisionModel;
 import org.locationtech.jts.geom.impl.PackedCoordinateSequenceFactory;
+import org.springmeyer.Pbf;
+import org.springmeyer.VectorTile;
+import org.springmeyer.VectorTileLayer;
 
 public class MvtUtils {
   private static final String ID_KEY = "id";
@@ -21,6 +25,13 @@ public class MvtUtils {
   /* Uses the java-vector-tile library for decoding the MVT tile */
   public static MapboxVectorTile decodeMvt(Path mvtFilePath) throws IOException {
     var mvt = Files.readAllBytes(mvtFilePath);
+
+    /*var compressedMvt = EncodingUtils.gzip(mvt);
+    long start = System.nanoTime();
+    var uncompressedMvt = EncodingUtils.unzip(compressedMvt);
+    long finish = System.nanoTime();
+    System.out.println("Gzip decoding time: " + (finish - start) / 1000000d + " ---------------------");*/
+
     return decodeMvt(mvt);
   }
 
@@ -48,6 +59,23 @@ public class MvtUtils {
         new PackedCoordinateSequenceFactory(PackedCoordinateSequenceFactory.DOUBLE);
     var geometryFactory = new GeometryFactory(precisionModel, 0, coordinateSequenceFactory);
     return MvtReader.loadMvt(mvtTile, geometryFactory, new TagKeyValueMapConverter(true, ID_KEY));
+  }
+
+  /* Use the java port of the vector-tile-js library created by Dane Springmeyer */
+  /* To get realistic number and have a fair comparison in terms of the decoding performance,
+   * the geometries of the features have also to be decoded.
+   * */
+  public static Map<String, VectorTileLayer> decodeMvtMapbox(byte[] mvtTile) throws IOException {
+    Pbf pbf = new Pbf(mvtTile);
+    VectorTile vectorTile = new VectorTile(pbf, pbf.length);
+    for (var layer : vectorTile.layers.values()) {
+      for (int i = 0; i < layer.length; i++) {
+        var feature = layer.feature(i);
+        var geometry = feature.loadGeometry();
+      }
+    }
+
+    return vectorTile.layers;
   }
 
   private static MapboxVectorTile decodeMvt(byte[] mvtTile) throws IOException {

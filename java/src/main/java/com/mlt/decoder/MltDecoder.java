@@ -1,5 +1,6 @@
 package com.mlt.decoder;
 
+import com.mlt.converter.mvt.MvtUtils;
 import com.mlt.data.Feature;
 import com.mlt.data.Layer;
 import com.mlt.data.MapLibreTile;
@@ -7,17 +8,22 @@ import com.mlt.decoder.vectorized.VectorizedDecodingUtils;
 import com.mlt.decoder.vectorized.VectorizedGeometryDecoder;
 import com.mlt.decoder.vectorized.VectorizedIntegerDecoder;
 import com.mlt.decoder.vectorized.VectorizedPropertyDecoder;
+import com.mlt.metadata.stream.RleEncodedStreamMetadata;
 import com.mlt.metadata.stream.StreamMetadataDecoder;
 import com.mlt.metadata.tileset.MltTilesetMetadata;
 import com.mlt.vector.BitVector;
 import com.mlt.vector.FeatureTable;
 import com.mlt.vector.Vector;
+import com.mlt.vector.VectorType;
 import com.mlt.vector.flat.IntFlatVector;
 import com.mlt.vector.flat.LongFlatVector;
 import com.mlt.vector.geometry.GeometryVector;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import com.mlt.vector.sequence.IntSequenceVector;
+import com.mlt.vector.sequence.LongSequenceVector;
 import me.lemire.integercompression.IntWrapper;
 import org.locationtech.jts.geom.Geometry;
 
@@ -54,6 +60,7 @@ public class MltDecoder {
         if (columnName.equals(ID_COLUMN_NAME)) {
           if (numStreams == 2) {
             var presentStreamMetadata = StreamMetadataDecoder.decode(tile, offset);
+            //TODO: handle present stream -> should a id column even be nullable?
             var presentStream =
                 DecodingUtils.decodeBooleanRle(
                     tile,
@@ -126,36 +133,24 @@ public class MltDecoder {
           metadata.getColumnsList().size()
               - (metadata.getColumnsList().get(0).getName().equals(ID_COLUMN_NAME) ? 2 : 1);
       var propertyVectors = new Vector[numProperties];
-      for (var columnMetadata : metadata.getColumnsList()) {
+      var columList = metadata.getColumnsList();
+      for (var columnMetadata : columList) {
         var columnName = columnMetadata.getName();
         var numStreams = DecodingUtils.decodeVarint(tile, offset, 1)[0];
 
         // TODO: add decoding of vector type to be compliant with the spec
-        // TODO: compare based on ids
         if (columnName.equals(ID_COLUMN_NAME)) {
           BitVector nullabilityBuffer = null;
           if (numStreams == 2) {
             var presentStreamMetadata = StreamMetadataDecoder.decode(tile, offset);
-            var n =
+            var values =
                 VectorizedDecodingUtils.decodeBooleanRle(
                     tile, presentStreamMetadata.numValues(), offset);
-            nullabilityBuffer = new BitVector(n, presentStreamMetadata.numValues());
+            nullabilityBuffer = new BitVector(values, presentStreamMetadata.numValues());
           }
 
-          // TODO: are ids optional? -> if not transform to random access format
-          var idDataStreamMetadata = StreamMetadataDecoder.decode(tile, offset);
-          var idDataType = columnMetadata.getScalarType().getPhysicalType();
-          // TODO: check for const and sequence vectors to reduce decoding time
-          if (idDataType.equals(MltTilesetMetadata.ScalarType.UINT_32)) {
-            var id =
-                VectorizedIntegerDecoder.decodeIntStream(tile, offset, idDataStreamMetadata, false);
-            idVector = new IntFlatVector(columnName, nullabilityBuffer, id);
-          } else {
-            var id =
-                VectorizedIntegerDecoder.decodeLongStream(
-                    tile, offset, idDataStreamMetadata, false);
-            idVector = new LongFlatVector(columnName, nullabilityBuffer, id);
-          }
+          idVector = decodeIdColumn(tile, columnMetadata, offset, columnName, nullabilityBuffer);
+
         } else if (columnName.equals(GEOMETRY_COLUMN_NAME)) {
           geometryVector =
               VectorizedGeometryDecoder.decodeToRandomAccessFormat(
@@ -174,6 +169,47 @@ public class MltDecoder {
     }
 
     return featureTables;
+  }
+
+  private static Vector decodeIdColumn(byte[] tile, MltTilesetMetadata.Column columnMetadata, IntWrapper offset, String columnName, BitVector nullabilityBuffer) {
+    Vector idVector;
+    /* If an id column is present the column is not allowed to be nullable */
+    var idDataStreamMetadata = StreamMetadataDecoder.decode(tile, offset);
+    var idDataType = columnMetadata.getScalarType().getPhysicalType();
+    var vectorType = VectorizedDecodingUtils.getVectorTypeIntStream(idDataStreamMetadata);
+    boolean isConstOrFlatVector = vectorType.equals(VectorType.FLAT) || vectorType.equals(VectorType.CONST);
+    if (idDataType.equals(MltTilesetMetadata.ScalarType.UINT_32)) {
+      //TODO: add support for const vector type -> but should not be allowed in id column
+      if (isConstOrFlatVector){
+        var id =
+                VectorizedIntegerDecoder.decodeIntStream(tile, offset, idDataStreamMetadata, false);
+        idVector = new IntFlatVector(columnName, nullabilityBuffer, id);
+      }
+      else if(vectorType.equals(VectorType.SEQUENCE)){
+        var id = VectorizedIntegerDecoder.decodeSequenceIntStream(tile, offset, idDataStreamMetadata);
+        idVector = new IntSequenceVector(columnName, id.getLeft(), id.getRight(),
+                ((RleEncodedStreamMetadata)idDataStreamMetadata).numRleValues());
+      }
+      else{
+        throw new IllegalArgumentException("Vector type not supported for id column.");
+      }
+    } else {
+      //TODO: add support for const vector type -> but should not be allowed in id column
+      if (isConstOrFlatVector) {
+        var id =
+                VectorizedIntegerDecoder.decodeLongStream(tile, offset, idDataStreamMetadata, false);
+        idVector = new LongFlatVector(columnName, nullabilityBuffer, id);
+      }
+      else if(vectorType.equals(VectorType.SEQUENCE)){
+        var id = VectorizedIntegerDecoder.decodeSequenceLongStream(tile, offset, idDataStreamMetadata);
+        idVector = new LongSequenceVector(columnName, id.getLeft(), id.getRight(),
+                ((RleEncodedStreamMetadata)idDataStreamMetadata).numRleValues());
+      }
+      else{
+        throw new IllegalArgumentException("Vector type not supported for id column.");
+      }
+    }
+    return idVector;
   }
 
   private static Layer convertToLayer(

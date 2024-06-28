@@ -5,6 +5,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -15,6 +18,7 @@ import java.util.zip.GZIPOutputStream;
 import com.mlt.decoder.vectorized.fastpfor.VectorFastPFOR;
 import me.lemire.integercompression.*;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.orc.PhysicalWriter;
 import org.apache.orc.impl.OutStream;
@@ -167,6 +171,18 @@ public class EncodingUtils {
     valueBuffer.add(values[values.length - 1]);
     runsBuffer.add(runs);
 
+    /*if(runsBuffer.size() == 2097 ) {
+      var str = StringUtils.join(ArrayUtils.toObject(values), ";");
+        try {
+          var path = Paths.get("test.csv");
+          byte[] strToBytes = str.getBytes();
+          Files.write(path, strToBytes);
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      System.out.println("Runs: " + runsBuffer.size() + " Ratio: " + values.length / runsBuffer.size());
+    }*/
+
     return Pair.of(runsBuffer, valueBuffer);
   }
 
@@ -193,7 +209,6 @@ public class EncodingUtils {
 
     valueBuffer.add(values[values.length - 1]);
     runsBuffer.add(runs);
-
     return Pair.of(runsBuffer, valueBuffer);
   }
 

@@ -80,15 +80,15 @@ public class CompressionBenchmarks {
   }
 
   private static Triple<Double, Double, Double> runBenchmarks(
-      String path, boolean allowSorting, List<String> reassignableLayers) throws IOException {
+          String path, boolean allowSorting, List<String> reassignableLayers) throws IOException {
     File bingDirectory = new File(path);
     File[] files = bingDirectory.listFiles();
 
     var tileSizes = new ArrayList<Pair<Integer, Integer>>();
     var tiles =
-        Arrays.stream(files)
-            .filter(file -> file.isFile() && !file.getName().equals(PLACEHOLDER_FILE))
-            .toList();
+            Arrays.stream(files)
+                    .filter(file -> file.isFile() && !file.getName().equals(PLACEHOLDER_FILE))
+                    .toList();
     if (tiles.isEmpty()) {
       System.out.printf("No tiles found in directory %s\n", path);
       return null;
@@ -122,7 +122,7 @@ public class CompressionBenchmarks {
   }
 
   private static Pair<Integer, Integer> getBenchmarksAndVerifyTiles(
-      String tilePath, boolean allowSorting, List<String> reassignableLayers) throws IOException {
+          String tilePath, boolean allowSorting, List<String> reassignableLayers) throws IOException {
     var mvtFilePath = Paths.get(tilePath);
     var mvTile = MvtUtils.decodeMvt(mvtFilePath);
 
@@ -132,23 +132,24 @@ public class CompressionBenchmarks {
 
     var allowIdRegeneration = false;
     var optimization =
-        new FeatureTableOptimizations(allowSorting, allowIdRegeneration, columnMappings);
+            new FeatureTableOptimizations(allowSorting, allowIdRegeneration, columnMappings);
     var optimizations =
-        TestSettings.OPTIMIZED_MVT_LAYERS.stream()
-            .collect(Collectors.toMap(l -> l, l -> optimization));
+            TestSettings.OPTIMIZED_MVT_LAYERS.stream()
+                    .collect(Collectors.toMap(l -> l, l -> optimization));
     for (var reassignableLayer : reassignableLayers) {
       optimizations.put(
-          reassignableLayer, new FeatureTableOptimizations(allowSorting, true, columnMappings));
+              reassignableLayer, new FeatureTableOptimizations(allowSorting, true, columnMappings));
     }
 
     var mlTile =
-        MltConverter.convertMvt(
-            mvTile, new ConversionConfig(true, true, optimizations), tileMetadata);
+            MltConverter.convertMvt(
+                    mvTile, new ConversionConfig(true, true, optimizations), tileMetadata);
 
     if (reassignableLayers.isEmpty()) {
       /* Only test when the ids are not reassigned since it is verified based on the other tests */
       var decodedMlt = MltDecoder.decodeMlTileVectorized(mlTile, tileMetadata);
-      TestUtils.compareTilesVectorized(decodedMlt, mvTile, allowSorting);
+      TestUtils.compareTilesVectorized(decodedMlt, mvTile,
+              allowSorting? TestUtils.Optimization.SORTED : TestUtils.Optimization.NONE, null);
     }
 
     var mvtSize = Files.readAllBytes(mvtFilePath).length;

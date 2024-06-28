@@ -40,7 +40,7 @@ public class BenchmarkUtils {
         MltConverter.createTilesetMetadata(encodedMvtTile.getRight(), columnMappings, true);
     tileMetadata.put(z, metadata);
 
-    var allowIdRegeneration = true;
+    var allowIdRegeneration = false;
     var allowSorting = false;
     var optimization =
         new FeatureTableOptimizations(allowSorting, allowIdRegeneration, columnMappings);

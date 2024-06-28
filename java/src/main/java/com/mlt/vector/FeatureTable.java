@@ -1,10 +1,13 @@
 package com.mlt.vector;
 
 import com.mlt.data.Feature;
+import com.mlt.vector.constant.IntConstVector;
 import com.mlt.vector.flat.IntFlatVector;
 import com.mlt.vector.geometry.GeometryVector;
 import java.util.HashMap;
 import java.util.Iterator;
+
+import com.mlt.vector.sequence.IntSequenceVector;
 import org.locationtech.jts.geom.Geometry;
 
 /** In-Memory representation of MLT storage format for efficient processing */
@@ -30,7 +33,7 @@ public class FeatureTable implements Iterable<Feature> {
   public Iterator<Feature> iterator() {
     return new Iterator<>() {
       private int index = 0;
-      private Iterator<Geometry> geometryIterator = geometryColumn.iterator();
+      private final Iterator<Geometry> geometryIterator = geometryColumn.iterator();
 
       @Override
       public boolean hasNext() {
@@ -39,10 +42,9 @@ public class FeatureTable implements Iterable<Feature> {
 
       @Override
       public Feature next() {
-        var id =
-            idColumn instanceof IntFlatVector
-                ? ((Integer) idColumn.getValue(index).get()).longValue()
-                : (Long) idColumn.getValue(index).get();
+        var id = isIntVector(idColumn)? ((Integer) idColumn.getValue(index).get()).longValue()
+                    : (Long) idColumn.getValue(index).get();
+
         var geometry = geometryIterator.next();
 
         var properties = new HashMap<String, Object>();
@@ -60,6 +62,11 @@ public class FeatureTable implements Iterable<Feature> {
         return new Feature(id, geometry, properties);
       }
     };
+  }
+
+  private boolean isIntVector(Vector<?, ?> vector){
+    return vector instanceof IntFlatVector || vector instanceof IntConstVector
+        || vector instanceof IntSequenceVector;
   }
 
   public String getName() {
