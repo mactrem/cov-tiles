@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import no.ecc.vectortile.VectorTileDecoder;
 import org.openjdk.jmh.annotations.*;
+import org.springmeyer.VectorTileLayer;
 
 /**
  * Benchmarks for the decoding performance of OpenMapTiles schema based tiles into the MVT and MLT
@@ -30,6 +31,7 @@ public class BingMapsDecoderBenchmark {
   private static final Map<Integer, byte[]> encodedMvtTiles = new HashMap<>();
   /* mapbox-vector-tile-java library */
   private static final Map<Integer, ByteArrayInputStream> encodedMvtTiles2 = new HashMap<>();
+  private static final Map<Integer, byte[]> compressedMVTiles = new HashMap<>();
   private static final Map<Integer, byte[]> encodedMltTiles = new HashMap<>();
   private static final Map<Integer, MltTilesetMetadata.TileSetMetadata> tileMetadata =
       new HashMap<>();
@@ -57,6 +59,7 @@ public class BingMapsDecoderBenchmark {
         y,
         encodedMvtTiles,
         encodedMvtTiles2,
+        compressedMVTiles,
         encodedMltTiles,
         tileMetadata,
         TestSettings.BING_MVT_PATH,
@@ -64,6 +67,59 @@ public class BingMapsDecoderBenchmark {
   }
 
   @Benchmark
+  public FeatureTable[] decodeMltZ4() {
+    var mlTile = encodedMltTiles.get(4);
+    var mltMetadata = tileMetadata.get(4);
+    return MltDecoder.decodeMlTileVectorized(mlTile, mltMetadata);
+  }
+
+  @Benchmark
+  public FeatureTable[] decodeMltZ5() {
+    var mlTile = encodedMltTiles.get(5);
+    var mltMetadata = tileMetadata.get(5);
+    return MltDecoder.decodeMlTileVectorized(mlTile, mltMetadata);
+  }
+
+  @Benchmark
+  public FeatureTable[] decodeMltZ6() {
+    var mlTile = encodedMltTiles.get(6);
+    var mltMetadata = tileMetadata.get(6);
+    return MltDecoder.decodeMlTileVectorized(mlTile, mltMetadata);
+  }
+
+  @Benchmark
+  public FeatureTable[] decodeMltZ7() {
+    var mlTile = encodedMltTiles.get(7);
+    var mltMetadata = tileMetadata.get(7);
+    return MltDecoder.decodeMlTileVectorized(mlTile, mltMetadata);
+  }
+
+  @Benchmark
+  public Map<String, VectorTileLayer> decodeMvtMapboxZ4() throws IOException {
+    var mvTile = encodedMvtTiles.get(4);
+    return MvtUtils.decodeMvtMapbox(mvTile);
+  }
+
+  @Benchmark
+  public Map<String, VectorTileLayer> decodeMvtMapboxZ5() throws IOException {
+    var mvTile = encodedMvtTiles.get(5);
+    return MvtUtils.decodeMvtMapbox(mvTile);
+  }
+
+  @Benchmark
+  public Map<String, VectorTileLayer> decodeMvtMapboxZ6() throws IOException {
+    var mvTile = encodedMvtTiles.get(6);
+    return MvtUtils.decodeMvtMapbox(mvTile);
+  }
+
+  @Benchmark
+  public Map<String, VectorTileLayer> decodeMvtMapboxZ7() throws IOException {
+    var mvTile = encodedMvtTiles.get(7);
+    return MvtUtils.decodeMvtMapbox(mvTile);
+  }
+
+  /*
+   @Benchmark
   public List<VectorTileDecoder.Feature> decodeMvtZ4() throws IOException {
     var mvTile = encodedMvtTiles.get(4);
     return MvtUtils.decodeMvtFast(mvTile);
@@ -73,13 +129,6 @@ public class BingMapsDecoderBenchmark {
   public JtsMvt decodeMvt2Z4() throws IOException {
     var mvTile = encodedMvtTiles2.get(4);
     return MvtUtils.decodeMvt2Fast(mvTile);
-  }
-
-  @Benchmark
-  public FeatureTable[] decodeMltZ4() {
-    var mlTile = encodedMltTiles.get(4);
-    var mltMetadata = tileMetadata.get(4);
-    return MltDecoder.decodeMlTileVectorized(mlTile, mltMetadata);
   }
 
   @Benchmark
@@ -95,13 +144,6 @@ public class BingMapsDecoderBenchmark {
   }
 
   @Benchmark
-  public FeatureTable[] decodeMltZ5() {
-    var mlTile = encodedMltTiles.get(5);
-    var mltMetadata = tileMetadata.get(5);
-    return MltDecoder.decodeMlTileVectorized(mlTile, mltMetadata);
-  }
-
-  @Benchmark
   public List<VectorTileDecoder.Feature> decodeMvtZ6() throws IOException {
     var mvTile = encodedMvtTiles.get(6);
     return MvtUtils.decodeMvtFast(mvTile);
@@ -114,13 +156,6 @@ public class BingMapsDecoderBenchmark {
   }
 
   @Benchmark
-  public FeatureTable[] decodeMltZ6() {
-    var mlTile = encodedMltTiles.get(6);
-    var mltMetadata = tileMetadata.get(6);
-    return MltDecoder.decodeMlTileVectorized(mlTile, mltMetadata);
-  }
-
-  @Benchmark
   public List<VectorTileDecoder.Feature> decodeMvtZ7() throws IOException {
     var mvTile = encodedMvtTiles.get(7);
     return MvtUtils.decodeMvtFast(mvTile);
@@ -130,12 +165,6 @@ public class BingMapsDecoderBenchmark {
   public JtsMvt decodeMvt2Z7() throws IOException {
     var mvTile = encodedMvtTiles2.get(7);
     return MvtUtils.decodeMvt2Fast(mvTile);
-  }
+  }*/
 
-  @Benchmark
-  public FeatureTable[] decodeMltZ7() {
-    var mlTile = encodedMltTiles.get(7);
-    var mltMetadata = tileMetadata.get(7);
-    return MltDecoder.decodeMlTileVectorized(mlTile, mltMetadata);
-  }
 }

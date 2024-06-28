@@ -147,14 +147,13 @@ public class CompressionBenchmarks {
     if (reassignableLayers.isEmpty()) {
       /* Only test when the ids are not reassigned since it is verified based on the other tests */
       var decodedMlt = MltDecoder.decodeMlTileVectorized(mlTile, tileMetadata);
-      try{
+      //try{
         System.out.println("Comparing tiles: " + tilePath);
         TestUtils.compareTilesVectorized(decodedMlt, mvTile,
                 allowSorting? TestUtils.Optimization.SORTED : TestUtils.Optimization.NONE, null);
-      } catch (Error e) {
+      /*} catch (Error e) {
         System.out.println("Error in tile: " + tilePath);
-      }
-
+      }*/
     }
 
     var mvtSize = Files.readAllBytes(mvtFilePath).length;

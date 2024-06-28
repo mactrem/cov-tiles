@@ -1,5 +1,6 @@
 package com.mlt;
 
+import com.mlt.converter.encodings.EncodingUtils;
 import com.mlt.converter.mvt.MvtUtils;
 import com.mlt.decoder.MltDecoder;
 import com.mlt.metadata.tileset.MltTilesetMetadata;
@@ -30,6 +31,7 @@ public class OmtDecoderBenchmark {
   private static final Map<Integer, byte[]> encodedMvtTiles = new HashMap<>();
   /* mapbox-vector-tile-java library */
   private static final Map<Integer, ByteArrayInputStream> encodedMvtTiles2 = new HashMap<>();
+  private static final Map<Integer, byte[]> compressedMVTiles = new HashMap<>();
   private static final Map<Integer, byte[]> encodedMltTiles = new HashMap<>();
   private static final Map<Integer, MltTilesetMetadata.TileSetMetadata> tileMetadata =
       new HashMap<>();
@@ -66,13 +68,14 @@ public class OmtDecoderBenchmark {
         y,
         encodedMvtTiles,
         encodedMvtTiles2,
+        compressedMVTiles,
         encodedMltTiles,
         tileMetadata,
         TestSettings.OMT_MVT_PATH,
         SEPARATOR);
   }
 
-  /*@Benchmark
+  @Benchmark
   public FeatureTable[] decodeMltZ2() {
     var mlTile = encodedMltTiles.get(2);
     var mltMetadata = tileMetadata.get(2);
@@ -84,9 +87,9 @@ public class OmtDecoderBenchmark {
     var mlTile = encodedMltTiles.get(3);
     var mltMetadata = tileMetadata.get(3);
     return MltDecoder.decodeMlTileVectorized(mlTile, mltMetadata);
-  }*/
+  }
 
-  @Benchmark
+ @Benchmark
   public FeatureTable[] decodeMltZ4() {
     var mlTile = encodedMltTiles.get(4);
     var mltMetadata = tileMetadata.get(4);
@@ -114,7 +117,7 @@ public class OmtDecoderBenchmark {
     return MltDecoder.decodeMlTileVectorized(mlTile, mltMetadata);
   }
 
-  /*@Benchmark
+  @Benchmark
   public FeatureTable[] decodeMltZ8() {
     var mlTile = encodedMltTiles.get(8);
     var mltMetadata = tileMetadata.get(8);
@@ -154,7 +157,7 @@ public class OmtDecoderBenchmark {
     var mlTile = encodedMltTiles.get(13);
     var mltMetadata = tileMetadata.get(13);
     return MltDecoder.decodeMlTileVectorized(mlTile, mltMetadata);
-  }*/
+  }
 
   @Benchmark
   public FeatureTable[] decodeMltZ14() {
@@ -240,6 +243,98 @@ public class OmtDecoderBenchmark {
     var mvTile = encodedMvtTiles.get(14);
     return MvtUtils.decodeMvtMapbox(mvTile);
   }
+
+  @Benchmark
+  public Map<String, VectorTileLayer> decodeCompressedMvtMapboxZ2() throws IOException {
+    var compressedMvTile = compressedMVTiles.get(2);
+    var mvTile = EncodingUtils.unzip(compressedMvTile);
+    return MvtUtils.decodeMvtMapbox(mvTile);
+  }
+
+  @Benchmark
+  public Map<String, VectorTileLayer> decodeCompressedMvtMapboxZ3() throws IOException {
+    var compressedMvTile = compressedMVTiles.get(3);
+    var mvTile = EncodingUtils.unzip(compressedMvTile);
+    return MvtUtils.decodeMvtMapbox(mvTile);
+  }
+
+  @Benchmark
+  public Map<String, VectorTileLayer> decodeCompressedMvtMapboxZ4() throws IOException {
+    var compressedMvTile = compressedMVTiles.get(4);
+    var mvTile = EncodingUtils.unzip(compressedMvTile);
+    return MvtUtils.decodeMvtMapbox(mvTile);
+  }
+
+  @Benchmark
+  public Map<String, VectorTileLayer> decodeCompressedMvtMapboxZ5() throws IOException {
+    var compressedMvTile = compressedMVTiles.get(5);
+    var mvTile = EncodingUtils.unzip(compressedMvTile);
+    return MvtUtils.decodeMvtMapbox(mvTile);
+  }
+
+  @Benchmark
+  public Map<String, VectorTileLayer> decodeCompressedMvtMapboxZ6() throws IOException {
+    var compressedMvTile = compressedMVTiles.get(6);
+    var mvTile = EncodingUtils.unzip(compressedMvTile);
+    return MvtUtils.decodeMvtMapbox(mvTile);
+  }
+
+  @Benchmark
+  public Map<String, VectorTileLayer> decodeCompressedMvtMapboxZ7() throws IOException {
+    var compressedMvTile = compressedMVTiles.get(7);
+    var mvTile = EncodingUtils.unzip(compressedMvTile);
+    return MvtUtils.decodeMvtMapbox(mvTile);
+  }
+
+  @Benchmark
+  public Map<String, VectorTileLayer> decodeCompressedMvtMapboxZ8() throws IOException {
+    var compressedMvTile = compressedMVTiles.get(8);
+    var mvTile = EncodingUtils.unzip(compressedMvTile);
+    return MvtUtils.decodeMvtMapbox(mvTile);
+  }
+
+  @Benchmark
+  public Map<String, VectorTileLayer> decodeCompressedMvtMapboxZ9() throws IOException {
+    var compressedMvTile = compressedMVTiles.get(9);
+    var mvTile = EncodingUtils.unzip(compressedMvTile);
+    return MvtUtils.decodeMvtMapbox(mvTile);
+  }
+
+  @Benchmark
+  public Map<String, VectorTileLayer> decodeCompressedMvtMapboxZ10() throws IOException {
+    var compressedMvTile = compressedMVTiles.get(10);
+    var mvTile = EncodingUtils.unzip(compressedMvTile);
+    return MvtUtils.decodeMvtMapbox(mvTile);
+  }
+
+  @Benchmark
+  public Map<String, VectorTileLayer> decodeCompressedMvtMapboxZ11() throws IOException {
+    var compressedMvTile = compressedMVTiles.get(11);
+    var mvTile = EncodingUtils.unzip(compressedMvTile);
+    return MvtUtils.decodeMvtMapbox(mvTile);
+  }
+
+  @Benchmark
+  public Map<String, VectorTileLayer> decodeCompressedMvtMapboxZ12() throws IOException {
+    var compressedMvTile = compressedMVTiles.get(12);
+    var mvTile = EncodingUtils.unzip(compressedMvTile);
+    return MvtUtils.decodeMvtMapbox(mvTile);
+  }
+
+  @Benchmark
+  public Map<String, VectorTileLayer> decodeCompressedMvtMapboxZ13() throws IOException {
+    var compressedMvTile = compressedMVTiles.get(13);
+    var mvTile = EncodingUtils.unzip(compressedMvTile);
+    return MvtUtils.decodeMvtMapbox(mvTile);
+  }
+
+  @Benchmark
+  public Map<String, VectorTileLayer> decodeCompressedMvtMapboxZ14() throws IOException {
+    var compressedMvTile = compressedMVTiles.get(14);
+    var mvTile = EncodingUtils.unzip(compressedMvTile);
+    return MvtUtils.decodeMvtMapbox(mvTile);
+  }
+
 
   /*@Benchmark
   public List<VectorTileDecoder.Feature> decodeMvtZ2() throws IOException {

@@ -61,9 +61,9 @@ public class MvtUtils {
     return MvtReader.loadMvt(mvtTile, geometryFactory, new TagKeyValueMapConverter(true, ID_KEY));
   }
 
-  /* Use the java port of the vector-tile-js library created by Dane Springmeyer */
-  /* To get realistic number and have a fair comparison in terms of the decoding performance,
-   * the geometries of the features have also to be decoded.
+  /* Use the java port of the vector-tile-js library created by Dane Springmeyer.
+   * To get realistic number and have a fair comparison in terms of the decoding performance,
+   * the geometries of the features have to be decoded.
    * */
   public static Map<String, VectorTileLayer> decodeMvtMapbox(byte[] mvtTile) throws IOException {
     Pbf pbf = new Pbf(mvtTile);

@@ -3,6 +3,7 @@ package com.mlt;
 import com.mlt.converter.ConversionConfig;
 import com.mlt.converter.FeatureTableOptimizations;
 import com.mlt.converter.MltConverter;
+import com.mlt.converter.encodings.EncodingUtils;
 import com.mlt.converter.mvt.ColumnMapping;
 import com.mlt.converter.mvt.MapboxVectorTile;
 import com.mlt.converter.mvt.MvtUtils;
@@ -25,6 +26,7 @@ public class BenchmarkUtils {
       int y,
       Map<Integer, byte[]> encodedMvtTiles,
       Map<Integer, ByteArrayInputStream> encodedMvtTiles2,
+      Map<Integer, byte[]> compressedMvtTiles,
       Map<Integer, byte[]> encodedMltTiles,
       Map<Integer, MltTilesetMetadata.TileSetMetadata> tileMetadata,
       String path,
@@ -33,6 +35,7 @@ public class BenchmarkUtils {
     var encodedMvtTile = getMvtFile(z, x, y, path, separator);
     encodedMvtTiles.put(z, encodedMvtTile.getLeft());
     encodedMvtTiles2.put(z, new ByteArrayInputStream(encodedMvtTile.getLeft()));
+    compressedMvtTiles.put(z, EncodingUtils.gzip(encodedMvtTile.getLeft()));
 
     var columnMapping = new ColumnMapping("name", ":", true);
     var columnMappings = Optional.of(List.of(columnMapping));
@@ -40,8 +43,8 @@ public class BenchmarkUtils {
         MltConverter.createTilesetMetadata(encodedMvtTile.getRight(), columnMappings, true);
     tileMetadata.put(z, metadata);
 
-    var allowIdRegeneration = false;
-    var allowSorting = false;
+    var allowIdRegeneration = true;
+    var allowSorting = true;
     var optimization =
         new FeatureTableOptimizations(allowSorting, allowIdRegeneration, columnMappings);
     var optimizations =
